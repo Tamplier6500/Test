@@ -1585,12 +1585,22 @@ var o=[];var l=Array.isArray(e);for(f=n.s.c;f<=n.e.c;++f)s[f]=ya(f);for(var c=n.
             }
         }
 
+        // Skip: the question goes to the end of the queue and comes back later
         function handleSkipQuestion() {
-            if (currentIndex < activeQuestions.length - 1) {
-                loadQuestion(currentIndex + 1);
-            } else {
+            const q = activeQuestions[currentIndex];
+            if (!q) return;
+            const othersLeft = activeQuestions.slice(currentIndex + 1)
+                .some(x => !(userAnswers[x.id] && userAnswers[x.id].isSubmitted));
+            if (!othersLeft) {
+                // Nothing else left to answer: finish
                 showSummaryScreen();
+                return;
             }
+            // Drop a half-filled (unsubmitted) selection so the question returns clean
+            if (userAnswers[q.id] && !userAnswers[q.id].isSubmitted) delete userAnswers[q.id];
+            activeQuestions.splice(currentIndex, 1);
+            activeQuestions.push(q);
+            loadQuestion(currentIndex);
         }
 
         // --- STATS BAR UPDATES ---
